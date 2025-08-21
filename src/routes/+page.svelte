@@ -6,6 +6,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import PopupInfo from '$lib/PopupInfo.svelte';
+	import GitHubLink from '$lib/GitHubLink.svelte';
 
 	const MAX_GRAVITY = -9.81;
 
@@ -91,6 +92,7 @@
 <div
 	class="relative flex h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950"
 >
+	<GitHubLink />
 	{#if appState === 'loading'}
 		<div class="text-center">
 			<Loader2 class="mx-auto mb-4 h-12 w-12 animate-spin text-blue-400" />
