@@ -4,10 +4,9 @@
 	import type { FlipFluid } from '$lib/fluid';
 
 	let {
-		gravity = -9.81,
-		resolution = 70,
-		angle = 50
-	}: { gravity?: number; resolution?: number; angle?: number } = $props();
+		gravity = { x: 0, y: -9.81 },
+		resolution = 70
+	}: { gravity?: { x: number; y: number }; resolution?: number; angle?: number } = $props();
 
 	let canvas: HTMLCanvasElement;
 	let fluid: FlipFluid;
@@ -52,18 +51,10 @@
 	function simulate() {
 		if (!fluid) return;
 
-		// Convert angle from degrees to radians
-		const angleRad = (angle * Math.PI) / 180;
-
-		// Calculate gravity components based on angle
-		// Angle 0° = straight down, positive angle = tilted right
-		const gravityX = gravity * Math.sin(angleRad);
-		const gravityY = gravity * Math.cos(angleRad);
-
 		fluid.simulate(
 			dt,
-			gravityX,
-			gravityY,
+			gravity.x,
+			gravity.y,
 			flipRatio,
 			numPressureIters,
 			numParticleIters,

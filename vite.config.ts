@@ -13,6 +13,6 @@ export default defineConfig({
 		VitePWA({ registerType: 'autoUpdate', manifest: false })
 	],
 	server: {
-		allowedHosts: ["192663db0349.ngrok-free.app"]
+		allowedHosts: ["b1779973317b.ngrok-free.app"]
 	}
 });

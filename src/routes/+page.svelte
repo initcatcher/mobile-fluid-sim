@@ -8,12 +8,12 @@
 	import PopupInfo from '$lib/PopupInfo.svelte';
 	import GitHubLink from '$lib/GitHubLink.svelte';
 
-	const MAX_GRAVITY = -9.81;
+	const MAX_GRAVITY = 9.81;
 
 	type AppState = 'loading' | 'needs-permission' | 'ready' | 'denied' | 'not-supported';
 
 	let angle: number | undefined = $state(0);
-	let gravity: number = $state(MAX_GRAVITY);
+	let gravity: { x: number; y: number } = $state({ x: 0, y: -MAX_GRAVITY });
 	let appState: AppState = $state('loading');
 
 	const requestPermission = async () => {
@@ -51,16 +51,21 @@
 
 	const onOrientationChange = (event: DeviceOrientationEvent) => {
 		if (event.beta !== null && event.gamma !== null) {
-			const angleRad = Math.atan2(event.beta, event.gamma);
-			angle = angleRad * (180 / Math.PI) - 90;
+			const beta = event.beta;
+			const gamma = event.gamma;
 
-			const betaRad = (event.beta * Math.PI) / 180;
-			const gammaRad = (event.gamma * Math.PI) / 180;
+			const betaRad = beta * (Math.PI / 180);
+			const gammaRad = gamma * (Math.PI / 180);
 
-			const cosProduct = Math.cos(betaRad) * Math.cos(gammaRad);
-			const tiltFactor = Math.sqrt(1 - cosProduct * cosProduct);
+			const cosBeta = Math.cos(betaRad);
+			const sinBeta = Math.sin(betaRad);
+			const sinGamma = Math.sin(gammaRad);
 
-			gravity = MAX_GRAVITY * tiltFactor;
+			const gx = sinGamma * cosBeta;
+			const gy = -sinBeta;
+
+			gravity.x = MAX_GRAVITY * Math.max(-1, Math.min(1, gx));
+			gravity.y = MAX_GRAVITY * Math.max(-1, Math.min(1, gy));
 		}
 	};
 
@@ -68,7 +73,7 @@
 		if (!browser) return;
 
 		if (!('DeviceOrientationEvent' in window)) {
-			gravity = MAX_GRAVITY;
+			gravity = { x: 0, y: -MAX_GRAVITY };
 			angle = 0;
 			appState = 'not-supported';
 			return;
@@ -130,7 +135,7 @@
 			</button>
 		</div>
 	{:else}
-		<FluidSimulation {gravity} {angle} />
+		<FluidSimulation {gravity} />
 		{#if appState === 'ready'}
 			<PopupInfo />
 		{/if}
