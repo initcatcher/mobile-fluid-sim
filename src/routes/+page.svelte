@@ -1,12 +1,13 @@
 <script lang="ts">
-	import FluidSimulation from '$lib/FluidSimulation.svelte';
 	import Loader2 from '@lucide/svelte/icons/loader-2';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 
 	import { onMount, onDestroy } from 'svelte';
+
 	import { browser } from '$app/environment';
-	import PopupInfo from '$lib/PopupInfo.svelte';
+	import FluidSimulation from '$lib/FluidSimulation.svelte';
 	import GitHubLink from '$lib/GitHubLink.svelte';
+	import PopupInfo from '$lib/PopupInfo.svelte';
 
 	const MAX_GRAVITY = 9.81;
 

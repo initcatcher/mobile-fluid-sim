@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+
 	import { setupFluidScene, FluidRenderer } from '$lib/fluid';
 	import type { FlipFluid } from '$lib/fluid';
 
