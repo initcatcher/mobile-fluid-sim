@@ -523,7 +523,7 @@ export class FlipFluid {
         overRelaxation: number,
         compensateDrift: boolean,
         separateParticles: boolean,
-        damping: number = 0.98
+        damping: number = 1.00
     ): void {
         const numSubSteps = 1;
         const sdt = dt / numSubSteps;
