@@ -14,7 +14,7 @@ This project implements fluid simulation techniques taught by the amazing [Ten M
 
 The initial inspiration for this project came from [Nicholas L. Johnson's flip-card project](https://github.com/Nicholas-L-Johnson/flip-card/).
 
-Since creating this simulation, it has become my go-to digital fidget toy.
+Since creating this simulation, it has become my go-to digital fidget toy. You can install it as a PWA too!
 
 ## Todo
 
