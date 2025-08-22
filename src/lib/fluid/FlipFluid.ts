@@ -98,10 +98,17 @@ export class FlipFluid {
         this.numParticles = 0;
     }
 
-    integrateParticles(dt: number, gravityX: number, gravityY: number): void {
+    integrateParticles(dt: number, gravityX: number, gravityY: number, damping: number): void {
         for (let i = 0; i < this.numParticles; i++) {
+            // Apply gravity
             this.particleVel[2 * i] += dt * gravityX;     // Apply X component of gravity
             this.particleVel[2 * i + 1] += dt * gravityY; // Apply Y component of gravity
+
+            // Apply damping to reduce velocity over time
+            this.particleVel[2 * i] *= damping;
+            this.particleVel[2 * i + 1] *= damping;
+
+            // Update positions
             this.particlePos[2 * i] += this.particleVel[2 * i] * dt;
             this.particlePos[2 * i + 1] += this.particleVel[2 * i + 1] * dt;
         }
@@ -515,13 +522,14 @@ export class FlipFluid {
         numParticleIters: number,
         overRelaxation: number,
         compensateDrift: boolean,
-        separateParticles: boolean
+        separateParticles: boolean,
+        damping: number = 0.98
     ): void {
         const numSubSteps = 1;
         const sdt = dt / numSubSteps;
 
         for (let step = 0; step < numSubSteps; step++) {
-            this.integrateParticles(sdt, gravityX, gravityY);
+            this.integrateParticles(sdt, gravityX, gravityY, damping);
             if (separateParticles) this.pushParticlesApart(numParticleIters);
             this.handleParticleCollisions();
             this.transferVelocities(true, flipRatio);

@@ -17,15 +17,16 @@
 	let simHeight = 3.0;
 	let simWidth = 4.0;
 
-	const dt = 1.0 / 60.0; // Performance: Matched example.html
-	const flipRatio = 0.9;
-	const numPressureIters = 50; // Performance: Matched example.html
-	const numParticleIters = 2;
-	const overRelaxation = 1.9;
+	const dt = 1.0 / 120.0;
+	const flipRatio = 0.95;
+	const numPressureIters = 60;
+	const numParticleIters = 3;
+	const overRelaxation = 1.7;
 	const compensateDrift = true;
 	const separateParticles = true;
 	const showParticles = true;
 	const showGrid = false;
+	const damping = 1.0;
 
 	// Particle count controls
 	const relWaterWidth = 0.6; // Water width as fraction of tank (0.1 to 1.0)
@@ -61,7 +62,8 @@
 			numParticleIters,
 			overRelaxation,
 			compensateDrift,
-			separateParticles
+			separateParticles,
+			damping
 		);
 	}
 
