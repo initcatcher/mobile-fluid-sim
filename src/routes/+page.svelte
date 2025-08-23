@@ -83,6 +83,12 @@
 
 	let appState: AppState = $state('loading');
 
+	// Shake detection
+	let lastShakeTime = 0;
+	let lastAcceleration = { x: 0, y: 0, z: 0 };
+	let shakeThreshold = 15;
+	let shakeTimeThreshold = 600;
+
 	const requestPermission = async () => {
 		if (!browser) return;
 
@@ -92,15 +98,25 @@
 		) {
 			// iOS 13+ permission request
 			try {
-				const response = await (DeviceOrientationEvent as any).requestPermission();
-				if (response === 'granted') {
+				const orientationResponse = await (DeviceOrientationEvent as any).requestPermission();
+				let motionResponse = 'granted';
+
+				// Also request motion permission if available
+				if (
+					'DeviceMotionEvent' in window &&
+					typeof (DeviceMotionEvent as any).requestPermission === 'function'
+				) {
+					motionResponse = await (DeviceMotionEvent as any).requestPermission();
+				}
+
+				if (orientationResponse === 'granted' && motionResponse === 'granted') {
 					startListening();
 					appState = 'ready';
 				} else {
 					appState = 'denied';
 				}
 			} catch (error) {
-				console.error('Error requesting device orientation permission:', error);
+				console.error('Error requesting device motion/orientation permission:', error);
 				appState = 'denied';
 			}
 		} else if ('DeviceOrientationEvent' in window) {
@@ -114,6 +130,33 @@
 	const startListening = () => {
 		if (!browser) return;
 		window.addEventListener('deviceorientation', onOrientationChange);
+		window.addEventListener('devicemotion', onDeviceMotion);
+	};
+
+	const onDeviceMotion = (event: DeviceMotionEvent) => {
+		if (!event.accelerationIncludingGravity) return;
+
+		const acceleration = event.accelerationIncludingGravity;
+		const x = acceleration.x || 0;
+		const y = acceleration.y || 0;
+		const z = acceleration.z || 0;
+
+		// Calculate the magnitude of acceleration change
+		const deltaX = Math.abs(x - lastAcceleration.x);
+		const deltaY = Math.abs(y - lastAcceleration.y);
+		const deltaZ = Math.abs(z - lastAcceleration.z);
+
+		const totalDelta = deltaX + deltaY + deltaZ;
+		const currentTime = Date.now();
+
+		// Check if shake threshold is exceeded and enough time has passed
+		if (totalDelta > shakeThreshold && currentTime - lastShakeTime > shakeTimeThreshold) {
+			onShake();
+			lastShakeTime = currentTime;
+		}
+
+		// Update last acceleration values
+		lastAcceleration = { x, y, z };
 	};
 
 	const onOrientationChange = (event: DeviceOrientationEvent) => {
@@ -157,6 +200,7 @@
 	onDestroy(() => {
 		if (browser && window) {
 			window.removeEventListener('deviceorientation', onOrientationChange);
+			window.removeEventListener('devicemotion', onDeviceMotion);
 		}
 	});
 
@@ -189,8 +233,9 @@
 			<Smartphone class="mx-auto mb-6 h-16 w-16 text-blue-400" />
 			<h1 class="mb-4 text-2xl font-bold text-white">Motion Sensors Required</h1>
 			<p class="mb-6 max-w-sm text-gray-300">
-				This fluid simulation responds to your device's tilt and orientation. Please grant
-				permission to access motion sensors for the best experience.
+				This fluid simulation responds to your device's tilt and orientation. It also detects shake
+				gestures to change fluid colors! Please grant permission to access motion sensors for the
+				best experience.
 			</p>
 			<button
 				onclick={requestPermission}

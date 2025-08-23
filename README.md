@@ -19,9 +19,8 @@ Since creating this simulation, it has become my go-to digital fidget toy. You c
 ## Todo
 
 - [ ] Add more interaction options
-  - [x] Change color with taps
+  - [x] Change color with shake
   - [ ] Control flow with finger
-  - [ ] Phone-shake
 - [ ] Add viscosity control
 
 ## Support
