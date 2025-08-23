@@ -160,7 +160,7 @@
 		}
 	});
 
-	const onCanvasClick = () => {
+	const onShake = () => {
 		currentFluidIndex = (currentFluidIndex + 1) % fluidTypes.length;
 		const newFluid = fluidTypes[currentFluidIndex];
 
@@ -221,7 +221,6 @@
 			foamColor={foamColor.current}
 			{colorDiffusionCoeff}
 			{foamReturnRate}
-			onclick={onCanvasClick}
 		/>
 
 		{#if appState === 'ready'}

@@ -18,8 +18,17 @@ Since creating this simulation, it has become my go-to digital fidget toy. You c
 
 ## Todo
 
+- [ ] Add more interaction options
+  - [x] Change color with taps
+  - [ ] Control flow with finger
+  - [ ] Phone-shake
 - [ ] Add viscosity control
-- [ ] Add finger interaction options
+
+## Support
+
+If you enjoy this project, consider buying me a coffee!
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/sh4jid)
 
 ## Development
 
