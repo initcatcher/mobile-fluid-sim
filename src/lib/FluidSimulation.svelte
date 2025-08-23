@@ -6,8 +6,22 @@
 
 	let {
 		gravity = { x: 0, y: -9.81 },
-		resolution = 70
-	}: { gravity?: { x: number; y: number }; resolution?: number; angle?: number } = $props();
+		resolution = 70,
+		fluidColor = { r: 0.09, g: 0.4, b: 1.0 },
+		foamColor = { r: 0.75, g: 0.9, b: 1.0 },
+		colorDiffusionCoeff = 0.0008,
+		foamReturnRate = 0.5,
+		onclick
+	}: {
+		gravity?: { x: number; y: number };
+		resolution?: number;
+		angle?: number;
+		fluidColor?: { r: number; g: number; b: number };
+		foamColor?: { r: number; g: number; b: number };
+		colorDiffusionCoeff?: number;
+		foamReturnRate?: number;
+		onclick?: () => void;
+	} = $props();
 
 	let canvas: HTMLCanvasElement;
 	let fluid: FlipFluid;
@@ -88,8 +102,26 @@
 		resizeCanvas();
 
 		// Initialize fluid simulation
-		fluid = setupFluidScene(simWidth, simHeight, resolution, relWaterWidth, relWaterHeight);
+		fluid = setupFluidScene(
+			simWidth,
+			simHeight,
+			resolution,
+			relWaterWidth,
+			relWaterHeight,
+			fluidColor,
+			foamColor,
+			colorDiffusionCoeff,
+			foamReturnRate
+		);
 		renderer = new FluidRenderer(canvas);
+
+		// Initial color is already set via constructor, keep setter for consistency
+		if (fluid) {
+			fluid.setFluidColor(fluidColor);
+			fluid.setFoamColor(foamColor);
+			fluid.setColorDiffusionCoeff(colorDiffusionCoeff);
+			fluid.setFoamReturnRate(foamReturnRate);
+		}
 
 		// Handle window resize
 		const handleResize = () => {
@@ -107,6 +139,40 @@
 			}
 		};
 	});
+
+	// Watch for color changes and update fluid (supports live changes later)
+	$effect(() => {
+		if (fluid) {
+			fluid.setFluidColor(fluidColor);
+		}
+	});
+
+	// Watch for foam color changes
+	$effect(() => {
+		if (fluid) {
+			fluid.setFoamColor(foamColor);
+		}
+	});
+
+	// Watch for diffusion coefficient changes
+	$effect(() => {
+		if (fluid) {
+			fluid.setColorDiffusionCoeff(colorDiffusionCoeff);
+		}
+	});
+
+	// Watch for foam return rate changes
+	$effect(() => {
+		if (fluid) {
+			fluid.setFoamReturnRate(foamReturnRate);
+		}
+	});
 </script>
 
-<canvas bind:this={canvas} class="absolute inset-0 z-10 h-full w-full"></canvas>
+<canvas
+	onclick={() => {
+		if (onclick) onclick();
+	}}
+	bind:this={canvas}
+	class="absolute inset-0 z-10 h-full w-full"
+></canvas>

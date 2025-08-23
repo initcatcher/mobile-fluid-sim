@@ -31,7 +31,11 @@ export function setupFluidScene(
     simHeight: number,
     resolution = 100,
     relWaterWidth = 0.6,
-    relWaterHeight = 0.8
+    relWaterHeight = 0.8,
+    baseColor?: { r: number; g: number; b: number },
+    foamColor?: { r: number; g: number; b: number },
+    colorDiffusionCoeff: number = 0.01,
+    foamReturnRate: number = 1.0
 ): FlipFluid {
     const tankHeight = simHeight;
     const tankWidth = simWidth;
@@ -48,7 +52,18 @@ export function setupFluidScene(
     const maxParticles = numX * numY;
 
     // Create fluid
-    const fluid = new FlipFluid(density, tankWidth, tankHeight, h, r, maxParticles);
+    const fluid = new FlipFluid(
+        density,
+        tankWidth,
+        tankHeight,
+        h,
+        r,
+        maxParticles,
+        baseColor,
+        foamColor,
+        colorDiffusionCoeff,
+        foamReturnRate
+    );
 
     // Create particles centered on the screen
     fluid.numParticles = numX * numY;

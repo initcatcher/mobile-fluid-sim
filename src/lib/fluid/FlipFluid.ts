@@ -38,6 +38,12 @@ export class FlipFluid {
     particleRestDensity: number;
     numParticles: number;
 
+    // Colors
+    baseColor: { r: number; g: number; b: number };
+    foamColor: { r: number; g: number; b: number };
+    colorDiffusionCoeff: number;
+    foamReturnRate: number; // per-second rate towards base color
+
     // Particle grid
     particleRadius: number;
     pInvSpacing: number;
@@ -48,7 +54,18 @@ export class FlipFluid {
     firstCellParticle: Int32Array;
     cellParticleIds: Int32Array;
 
-    constructor(density: number, width: number, height: number, spacing: number, particleRadius: number, maxParticles: number) {
+    constructor(
+        density: number,
+        width: number,
+        height: number,
+        spacing: number,
+        particleRadius: number,
+        maxParticles: number,
+        baseColor?: { r: number; g: number; b: number },
+        foamColor?: { r: number; g: number; b: number },
+        colorDiffusionCoeff: number = 0.01,
+        foamReturnRate: number = 1.0
+    ) {
         this.density = density;
         this.fNumX = Math.floor(width / spacing) + 1;
         this.fNumY = Math.floor(height / spacing) + 1;
@@ -72,12 +89,20 @@ export class FlipFluid {
         this.maxParticles = maxParticles;
         this.particlePos = new Float32Array(2 * this.maxParticles);
         this.particleColor = new Float32Array(3 * this.maxParticles);
+
+        // Use provided base color or default to a deeper water-like blue
+        const defaultColor = { r: 0.06, g: 0.45, b: 0.9 };
+        const color = baseColor || defaultColor;
+        this.baseColor = { ...color };
+        this.foamColor = foamColor || { r: 0.7, g: 0.9, b: 1.0 };
+        this.colorDiffusionCoeff = colorDiffusionCoeff;
+        this.foamReturnRate = foamReturnRate;
+
         for (let i = 0; i < this.maxParticles; i++) {
-            // Water-like colors: mix of cyan, light blue, and aqua tones
-            const variation = Math.random() * 0.3; // Add some color variation
-            this.particleColor[3 * i] = 0.1 + variation * 0.4;     // Red: light cyan tint
-            this.particleColor[3 * i + 1] = 0.6 + variation * 0.4; // Green: aqua/teal
-            this.particleColor[3 * i + 2] = 0.9 + variation * 0.1; // Blue: strong water blue
+            // Single base color for all particles
+            this.particleColor[3 * i] = color.r;
+            this.particleColor[3 * i + 1] = color.g;
+            this.particleColor[3 * i + 2] = color.b;
         }
 
         this.particleVel = new Float32Array(2 * this.maxParticles);
@@ -115,7 +140,7 @@ export class FlipFluid {
     }
 
     pushParticlesApart(numIters: number): void {
-        const colorDiffusionCoeff = 0.001;
+        const colorDiffusionCoeff = this.colorDiffusionCoeff;
 
         // Build spatial hash
         this.numCellParticles.fill(0);
@@ -441,36 +466,38 @@ export class FlipFluid {
         }
     }
 
-    updateParticleColors(): void {
+    updateParticleColors(dt: number): void {
+        // Apply foam when in low-density regions; otherwise decay color back to base using time-based rate
         const h1 = this.fInvSpacing;
+        const t = Math.max(0, Math.min(1, this.foamReturnRate * dt));
 
         for (let i = 0; i < this.numParticles; i++) {
-            // Subtle aging effect - keep water colors stable
-            const s = 0.002; // Much smaller aging effect
-            const currentR = this.particleColor[3 * i];
-            const currentG = this.particleColor[3 * i + 1];
-            const currentB = this.particleColor[3 * i + 2];
-
-            // Gentle aging towards deeper water blue, but preserve water tones
-            this.particleColor[3 * i] = clamp(currentR - s * 0.5, 0.05, 0.6);     // Keep cyan tint
-            this.particleColor[3 * i + 1] = clamp(currentG - s * 0.3, 0.4, 1.0);  // Preserve aqua/teal
-            this.particleColor[3 * i + 2] = clamp(currentB + s * 0.1, 0.8, 1.0);  // Maintain strong blue
-
             const x = this.particlePos[2 * i];
             const y = this.particlePos[2 * i + 1];
             const xi = clamp(Math.floor(x * h1), 1, this.fNumX - 1);
             const yi = clamp(Math.floor(y * h1), 1, this.fNumY - 1);
             const cellNr = xi * this.fNumY + yi;
 
+            let applyFoam = false;
             const d0 = this.particleRestDensity;
             if (d0 > 0.0) {
                 const relDensity = this.particleDensity[cellNr] / d0;
-                if (relDensity < 0.7) {
-                    // Water foam/spray effect - light blue-white foam instead of pure white
-                    this.particleColor[3 * i] = 0.7;     // Light cyan for foam
-                    this.particleColor[3 * i + 1] = 0.9; // Light aqua for foam
-                    this.particleColor[3 * i + 2] = 1.0; // Bright white-blue for foam
-                }
+                if (relDensity < 0.7) applyFoam = true;
+            }
+
+            if (applyFoam) {
+                // Set to foam color immediately while in foam region
+                this.particleColor[3 * i] = this.foamColor.r;
+                this.particleColor[3 * i + 1] = this.foamColor.g;
+                this.particleColor[3 * i + 2] = this.foamColor.b;
+            } else {
+                // Lerp back to base color at a controllable rate
+                const cr = this.particleColor[3 * i];
+                const cg = this.particleColor[3 * i + 1];
+                const cb = this.particleColor[3 * i + 2];
+                this.particleColor[3 * i] = cr + (this.baseColor.r - cr) * t;
+                this.particleColor[3 * i + 1] = cg + (this.baseColor.g - cg) * t;
+                this.particleColor[3 * i + 2] = cb + (this.baseColor.b - cb) * t;
             }
         }
     }
@@ -538,7 +565,28 @@ export class FlipFluid {
             this.transferVelocities(false, flipRatio);
         }
 
-        this.updateParticleColors();
+        this.updateParticleColors(sdt);
         this.updateCellColors();
+    }
+
+    setFluidColor(baseColor: { r: number; g: number; b: number }): void {
+        this.baseColor = { ...baseColor };
+        for (let i = 0; i < this.maxParticles; i++) {
+            this.particleColor[3 * i] = baseColor.r;
+            this.particleColor[3 * i + 1] = baseColor.g;
+            this.particleColor[3 * i + 2] = baseColor.b;
+        }
+    }
+
+    setFoamColor(foamColor: { r: number; g: number; b: number }): void {
+        this.foamColor = { ...foamColor };
+    }
+
+    setColorDiffusionCoeff(coeff: number): void {
+        this.colorDiffusionCoeff = Math.max(0, Math.min(1, coeff));
+    }
+
+    setFoamReturnRate(rate: number): void {
+        this.foamReturnRate = Math.max(0, rate);
     }
 }
