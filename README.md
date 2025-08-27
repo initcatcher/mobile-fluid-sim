@@ -1,45 +1,98 @@
-# mobile-fluid-sim
+# 모바일 유체 시뮬레이션 (React 버전)
 
-A real-time fluid simulation that runs in your browser and reacts to mobile device sensors. Built using the FLIP (Fluid-Implicit-Particle) technique for realistic fluid dynamics.
+브라우저에서 실행되는 실시간 유체 시뮬레이션으로, 모바일 디바이스 센서에 반응합니다. 현실적인 유체 역학을 위해 FLIP (Fluid-Implicit-Particle) 기법을 사용했습니다.
 
-**[Try it live at fluid.sh4jid.me](https://fluid.sh4jid.me)**
-
-## Demo
+## 데모
 
 ![Fluid Simulation Demo](mobile-fluid-sim.gif)
 
-## About
+## 프로젝트 소개
 
-This project implements fluid simulation techniques taught by the amazing [Ten Minute Physics YouTube channel](https://www.youtube.com/channel/UCTG_vrRdKYfrpqCv_WV4eyA), particularly from [this video](https://youtu.be/XmzBREkK8kY).
+이 프로젝트는 **SvelteKit에서 React로 마이그레이션**된 버전입니다. 원본 프로젝트에서 영감을 받아 React 생태계로 포팅했습니다.
 
-The initial inspiration for this project came from [Nicholas L. Johnson's flip-card project](https://github.com/Nicholas-L-Johnson/flip-card/).
+### 주요 특징
 
-Since creating this simulation, it has become my go-to digital fidget toy. You can install it as a PWA too!
+- 📱 **모바일 센서 반응**: 디바이스의 기울임과 회전에 따라 중력 방향이 변경됩니다
+- 🎨 **흔들어서 색상 변경**: 디바이스를 흔들면 8가지 유체 색상이 순환됩니다
+- 🌊 **FLIP 유체 시뮬레이션**: 파티클과 그리드 기반의 하이브리드 접근법으로 현실적인 유체 역학 구현
+- ⚡ **WebGL 렌더링**: 고성능 그래픽 처리로 부드러운 60FPS 애니메이션
+- 📲 **PWA 지원**: 모바일에서 앱처럼 설치하여 사용 가능
 
-## Todo
+### 기술적 구현
 
-- [ ] Add more interaction options
-  - [x] Change color with shake
-  - [ ] Control flow with finger
-- [ ] Add viscosity control
+- **React 18** + **TypeScript**로 구현
+- **Framer Motion**을 사용한 부드러운 색상 전환 애니메이션
+- **Custom Hooks**로 디바이스 센서 로직 분리
+- **WebGL 쉐이더**를 사용한 파티클 렌더링
+- **Vite** 빌드 시스템
 
-## Support
+## 원본 프로젝트 정보
 
-If you enjoy this project, consider buying me a coffee!
+이 시뮬레이션은 [Ten Minute Physics YouTube 채널](https://www.youtube.com/channel/UCTG_vrRdKYfrpqCv_WV4eyA)에서 가르치는 유체 시뮬레이션 기법을 구현했습니다. 특히 [이 영상](https://youtu.be/XmzBREkK8kY)을 참고했습니다.
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/sh4jid)
+초기 영감은 [Nicholas L. Johnson의 flip-card 프로젝트](https://github.com/Nicholas-L-Johnson/flip-card/)에서 받았습니다.
 
-## Development
+## 개발 환경 설정
 
 ```bash
+# 의존성 설치
 pnpm install
+
+# 개발 서버 실행
 pnpm dev
+
+# 프로덕션 빌드
+pnpm build
+
+# 빌드 미리보기
+pnpm preview
 ```
 
-## License
+### 개발 명령어
 
-MIT License - see [LICENSE](LICENSE) file for details.
+- `pnpm dev` - Vite 개발 서버 실행
+- `pnpm build` - 프로덕션 빌드 생성
+- `pnpm preview` - 빌드된 버전 미리보기
+- `pnpm check` - TypeScript 타입 검사
+- `pnpm lint` - ESLint + Prettier 검사
+- `pnpm format` - 코드 포맷팅
 
-## Contributing
+## 프로젝트 구조
 
-Pull requests are welcome! Feel free to contribute improvements or new features.
+```
+src/
+├── components/          # React 컴포넌트
+│   ├── FluidSimulation.tsx
+│   ├── GitHubLink.tsx
+│   └── PopupInfo.tsx
+├── hooks/              # 커스텀 React 훅
+│   ├── useDeviceSensors.ts
+│   └── useColorTween.ts
+├── lib/               # 유체 엔진 (프레임워크 독립적)
+│   └── fluid/
+│       ├── FlipFluid.ts
+│       ├── FluidRenderer.ts
+│       └── FluidScene.ts
+├── App.tsx            # 메인 앱 컴포넌트
+└── main.tsx           # React 앱 진입점
+```
+
+## 주요 변경사항 (SvelteKit → React)
+
+- **상태 관리**: Svelte의 `$state` → React의 `useState`
+- **생명주기**: Svelte의 `onMount` → React의 `useEffect`
+- **반응성**: Svelte의 `$effect` → React의 `useEffect`
+- **애니메이션**: Svelte의 `Tween` 스토어 → Framer Motion
+- **컴포넌트**: Svelte 컴포넌트 → React 함수형 컴포넌트
+
+## 할 일
+
+- [ ] 더 많은 상호작용 옵션 추가
+  - [x] 흔들어서 색상 변경
+  - [ ] 손가락으로 유체 조작
+- [ ] 점성도 조절 기능 추가
+- [ ] 다양한 유체 프리셋 추가
+
+## 라이센스
+
+MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
