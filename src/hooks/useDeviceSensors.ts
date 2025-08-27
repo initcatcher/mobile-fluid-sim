@@ -23,6 +23,10 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 	const shakeThreshold = 15;
 	const shakeTimeThreshold = 600;
 
+	// Store event handlers in refs to avoid dependency issues
+	const onOrientationChangeRef = useRef<(event: DeviceOrientationEvent) => void>();
+	const onDeviceMotionRef = useRef<(event: DeviceMotionEvent) => void>();
+
 	const onDeviceMotion = useCallback((event: DeviceMotionEvent) => {
 		if (!event.accelerationIncludingGravity) return;
 
@@ -71,10 +75,16 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 		}
 	}, []);
 
+	// Update refs whenever handlers change
+	onOrientationChangeRef.current = onOrientationChange;
+	onDeviceMotionRef.current = onDeviceMotion;
+
 	const startListening = useCallback(() => {
-		window.addEventListener('deviceorientation', onOrientationChange);
-		window.addEventListener('devicemotion', onDeviceMotion);
-	}, [onOrientationChange, onDeviceMotion]);
+		if (onOrientationChangeRef.current && onDeviceMotionRef.current) {
+			window.addEventListener('deviceorientation', onOrientationChangeRef.current);
+			window.addEventListener('devicemotion', onDeviceMotionRef.current);
+		}
+	}, []);
 
 	const requestPermission = useCallback(async () => {
 		if (
@@ -131,12 +141,16 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 			setAppState('ready');
 		}
 
-		// Cleanup - include dependencies to fix closure issue
+		// Cleanup using refs to avoid dependency issues
 		return () => {
-			window.removeEventListener('deviceorientation', onOrientationChange);
-			window.removeEventListener('devicemotion', onDeviceMotion);
+			if (onOrientationChangeRef.current) {
+				window.removeEventListener('deviceorientation', onOrientationChangeRef.current);
+			}
+			if (onDeviceMotionRef.current) {
+				window.removeEventListener('devicemotion', onDeviceMotionRef.current);
+			}
 		};
-	}, [startListening, onOrientationChange, onDeviceMotion]); // Include dependencies
+	}, [startListening]); // Only depend on startListening which has no dependencies
 
 	return {
 		appState,
