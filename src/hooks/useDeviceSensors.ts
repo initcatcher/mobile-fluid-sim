@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type AppState = 'loading' | 'needs-permission' | 'ready' | 'denied' | 'not-supported';
 
@@ -17,9 +17,9 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 	const [gravity, setGravity] = useState({ x: 0, y: -MAX_GRAVITY });
 	const [onShakeCallback, setOnShakeCallback] = useState<() => void>(() => () => {});
 
-	// Shake detection state
-	const [lastShakeTime, setLastShakeTime] = useState(0);
-	const [lastAcceleration, setLastAcceleration] = useState({ x: 0, y: 0, z: 0 });
+	// Shake detection state - using useRef to prevent infinite loops
+	const lastShakeTimeRef = useRef(0);
+	const lastAccelerationRef = useRef({ x: 0, y: 0, z: 0 });
 	const shakeThreshold = 15;
 	const shakeTimeThreshold = 600;
 
@@ -32,22 +32,22 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 		const z = acceleration.z || 0;
 
 		// Calculate the magnitude of acceleration change
-		const deltaX = Math.abs(x - lastAcceleration.x);
-		const deltaY = Math.abs(y - lastAcceleration.y);
-		const deltaZ = Math.abs(z - lastAcceleration.z);
+		const deltaX = Math.abs(x - lastAccelerationRef.current.x);
+		const deltaY = Math.abs(y - lastAccelerationRef.current.y);
+		const deltaZ = Math.abs(z - lastAccelerationRef.current.z);
 
 		const totalDelta = deltaX + deltaY + deltaZ;
 		const currentTime = Date.now();
 
 		// Check if shake threshold is exceeded and enough time has passed
-		if (totalDelta > shakeThreshold && currentTime - lastShakeTime > shakeTimeThreshold) {
+		if (totalDelta > shakeThreshold && currentTime - lastShakeTimeRef.current > shakeTimeThreshold) {
 			onShakeCallback();
-			setLastShakeTime(currentTime);
+			lastShakeTimeRef.current = currentTime;
 		}
 
 		// Update last acceleration values
-		setLastAcceleration({ x, y, z });
-	}, [lastAcceleration, lastShakeTime, onShakeCallback, shakeThreshold, shakeTimeThreshold]);
+		lastAccelerationRef.current = { x, y, z };
+	}, [onShakeCallback]);
 
 	const onOrientationChange = useCallback((event: DeviceOrientationEvent) => {
 		if (event.beta !== null && event.gamma !== null) {
@@ -116,7 +116,7 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 		onShakeCallback();
 	}, [onShakeCallback]);
 
-	// Initialize
+	// Initialize - only run once
 	useEffect(() => {
 		if (!('DeviceOrientationEvent' in window)) {
 			setGravity({ x: 0, y: -MAX_GRAVITY });
@@ -136,7 +136,7 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 			window.removeEventListener('deviceorientation', onOrientationChange);
 			window.removeEventListener('devicemotion', onDeviceMotion);
 		};
-	}, [startListening, onOrientationChange, onDeviceMotion]);
+	}, []); // Empty dependency array to run only once
 
 	return {
 		appState,
