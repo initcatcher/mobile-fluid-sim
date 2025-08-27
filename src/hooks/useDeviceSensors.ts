@@ -131,12 +131,12 @@ export const useDeviceSensors = (): DeviceSensorsHook => {
 			setAppState('ready');
 		}
 
-		// Cleanup
+		// Cleanup - include dependencies to fix closure issue
 		return () => {
 			window.removeEventListener('deviceorientation', onOrientationChange);
 			window.removeEventListener('devicemotion', onDeviceMotion);
 		};
-	}, []); // Empty dependency array to run only once
+	}, [startListening, onOrientationChange, onDeviceMotion]); // Include dependencies
 
 	return {
 		appState,
